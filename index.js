@@ -5,7 +5,7 @@ const cors = require("cors");
 const port = 5000;
 app.use(cors());
 app.use(express.json());
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
 app.get("/", (req, res) => {
   res.send("pump server is running");
@@ -26,7 +26,24 @@ async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
+    const carsDataBase = client.db("carDoctor").collection("services");
     // Send a ping to confirm a successful connection
+
+    // find multiple document from here
+    app.get("/services", async (req, res) => {
+      const result = await carsDataBase.find().toArray();
+      res.send(result);
+    });
+    // get single data from db
+    app.get("/services/:id", async (req, res) => {
+      const id = req.params.id;
+      const options = {
+        projection: { title: 1, price: 1, service_id: 1 },
+      };
+      const query = { _id: new ObjectId(id) };
+      const result = await carsDataBase.findOne(query, options);
+      res.send(result);
+    });
     await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
