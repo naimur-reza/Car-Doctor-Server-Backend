@@ -67,6 +67,20 @@ async function run() {
       const result = await bookingDatabase.deleteOne(query);
       res.send(result);
     });
+    // booking update info api
+    app.patch("/bookings/:id", async (req, res) => {
+      const id = req.params.id;
+      const doc = req.body;
+      const filter = { _id: new ObjectId(id) };
+
+      const updatedDoc = {
+        $set: {
+          status: doc.status,
+        },
+      };
+      const result = await bookingDatabase.updateOne(filter, updatedDoc);
+      res.send(result);
+    });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
