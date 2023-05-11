@@ -27,6 +27,7 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
     const carsDataBase = client.db("carDoctor").collection("services");
+    const bookingDatabase = client.db("carDoctor").collection("bookings");
     // Send a ping to confirm a successful connection
 
     // find multiple document from here
@@ -38,13 +39,34 @@ async function run() {
     app.get("/services/:id", async (req, res) => {
       const id = req.params.id;
       const options = {
-        projection: { title: 1, price: 1, service_id: 1 },
+        projection: { title: 1, price: 1, service_id: 1, img: 1 },
       };
       const query = { _id: new ObjectId(id) };
       const result = await carsDataBase.findOne(query, options);
       res.send(result);
     });
-    await client.db("admin").command({ ping: 1 });
+    // post methods from here
+    app.post("/bookings", async (req, res) => {
+      const bookingData = req.body;
+      const result = await bookingDatabase.insertOne(bookingData);
+      res.send(result);
+    });
+    // lets get bookings data from database
+    app.get("/bookings", async (req, res) => {
+      let query = {};
+      if (req.query?.email) {
+        query = { email: req.query.email };
+      }
+      const result = await bookingDatabase.find(query).toArray();
+      res.send(result);
+    });
+    // lets delete from here
+    app.delete("/bookings/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await bookingDatabase.deleteOne(query);
+      res.send(result);
+    });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
