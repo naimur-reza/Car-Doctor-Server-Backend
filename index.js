@@ -57,7 +57,7 @@ async function run() {
       const user = req.body;
       console.log(user);
       const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
-        expiresIn: "1h",
+        expiresIn: "10s",
       });
       res.send(JSON.stringify(token));
     });
@@ -89,10 +89,18 @@ async function run() {
     // lets get bookings data from database
     app.get("/bookings", verifyJwt, async (req, res) => {
       // console.log(req.headers);
+      const decoded = req.decoded;
+      console.log(decoded);
+      if (decoded.loggedUser.email !== req.query.email) {
+        return res
+          .status(403)
+          .send({ error: true, message: "forbidden access" });
+      }
       let query = {};
       if (req.query?.email) {
         query = { email: req.query.email };
       }
+
       const result = await bookingDatabase.find(query).toArray();
       res.send(result);
     });
